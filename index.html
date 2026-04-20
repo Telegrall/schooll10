@@ -32,7 +32,8 @@
         .container { max-width:600px; margin:0 auto; position:relative; z-index:20; padding-bottom:80px; }
         h1 { font-size:2rem; font-weight:700; background:linear-gradient(135deg,#C0E0FF,#7CB9FF); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center; margin-bottom:8px; text-shadow:0 0 20px rgba(43,154,255,0.3); }
         .subtitle { text-align:center; color:#8e9eae; margin-bottom:24px; }
-        .card { background:rgba(15,25,55,0.55); backdrop-filter:blur(12px); border-radius:28px; padding:20px; margin-bottom:16px; border:1px solid rgba(43,154,255,0.25); box-shadow:0 8px 20px rgba(0,0,0,0.3); }
+        .card { background:rgba(15,25,55,0.55); backdrop-filter:blur(12px); border-radius:28px; padding:20px; margin-bottom:16px; border:1px solid rgba(43,154,255,0.25); box-shadow:0 8px 20px rgba(0,0,0,0.3); cursor:pointer; transition:transform 0.2s, border-color 0.2s; }
+        .card:active { transform:scale(0.98); border-color:#2b9aff; }
         .btn { background:linear-gradient(95deg,#2b6ef0,#1a4fcf); border:none; border-radius:40px; padding:14px; color:white; font-weight:600; cursor:pointer; width:100%; margin-top:12px; border:1px solid rgba(255,255,255,0.1); transition:transform 0.2s,box-shadow 0.2s; }
         .btn:active { transform:scale(0.98); box-shadow:0 0 16px rgba(43,154,255,0.4); }
         .btn-outline { background:transparent; border:1px solid #2b9aff; color:#2b9aff; }
@@ -44,8 +45,10 @@
         .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; padding:16px; z-index:1000; }
         .modal-content { background:#17212b; border-radius:28px; padding:24px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; border:1px solid #2b3b4c; }
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-        .site-link { text-align:center; margin-top:20px; }
-        .site-link a { color:#2b9aff; text-decoration:none; font-size:1rem; display:inline-flex; align-items:center; gap:8px; padding:12px 24px; background:rgba(15,25,55,0.55); backdrop-filter:blur(8px); border-radius:40px; border:1px solid rgba(43,154,255,0.25); }
+        
+        /* Большие иконки в карточках */
+        .card-icon { font-size:3.5rem; text-align:center; margin-bottom:8px; }
+        .card-title { text-align:center; font-weight:600; font-size:1rem; }
     </style>
 </head>
 <body>
@@ -67,7 +70,7 @@
     <!-- ЭКРАН ВХОДА -->
     <div id="loginScreen">
         <h1>🏫 Школьный помощник</h1>
-        <div class="card">
+        <div class="card" style="cursor:default;">
             <input type="text" id="loginNickname" class="input-field" placeholder="Ваш никнейм">
             <button class="btn" id="checkNicknameBtn">Продолжить</button>
         </div>
@@ -76,7 +79,7 @@
     <!-- ЭКРАН РЕГИСТРАЦИИ -->
     <div id="registerScreen" class="hidden">
         <h1>📝 Регистрация</h1>
-        <div class="card">
+        <div class="card" style="cursor:default;">
             <input type="text" id="regFullName" class="input-field" placeholder="ФИО полностью">
             <input type="date" id="regBirthDate" class="input-field" placeholder="Дата рождения">
             <button class="btn" id="submitRegisterBtn">Отправить заявку</button>
@@ -87,15 +90,27 @@
     <!-- ЭКРАН ОЖИДАНИЯ -->
     <div id="pendingScreen" class="hidden">
         <h1>⏳ На проверке</h1>
-        <div class="card">
+        <div class="card" style="cursor:default;">
             <p>Ваша заявка рассматривается.</p>
             <p>Пока вам доступны только информационные разделы.</p>
         </div>
         <div class="grid-2">
-            <div class="card" id="pendingBtnSchedule">📅 Расписание</div>
-            <div class="card" id="pendingBtnMenu">🍽 Меню</div>
-            <div class="card" id="pendingBtnEvents">📢 События</div>
-            <div class="card" id="pendingBtnMeetings">👨‍👩‍👧 Род. собрания</div>
+            <div class="card" id="pendingBtnSchedule">
+                <div class="card-icon">📅</div>
+                <div class="card-title">Расписание</div>
+            </div>
+            <div class="card" id="pendingBtnMenu">
+                <div class="card-icon">🍳</div>
+                <div class="card-title">Меню</div>
+            </div>
+            <div class="card" id="pendingBtnEvents">
+                <div class="card-icon">📢</div>
+                <div class="card-title">События</div>
+            </div>
+            <div class="card" id="pendingBtnMeetings">
+                <div class="card-icon">👨‍👩‍👧</div>
+                <div class="card-title">Род. собрания</div>
+            </div>
         </div>
         <button class="btn-outline" id="logoutFromPendingBtn">🚪 Выйти</button>
     </div>
@@ -109,20 +124,32 @@
         </div>
         
         <div class="grid-2">
-            <div class="card" id="btnSchedule">📅 Расписание</div>
-            <div class="card" id="btnMenu">🍽 Меню</div>
-            <div class="card" id="btnEvents">📢 События</div>
-            <div class="card" id="btnMeetings">👨‍👩‍👧 Род. собрания</div>
+            <div class="card" id="btnSchedule">
+                <div class="card-icon">📅</div>
+                <div class="card-title">Расписание</div>
+            </div>
+            <div class="card" id="btnMenu">
+                <div class="card-icon">🍳</div>
+                <div class="card-title">Меню</div>
+            </div>
+            <div class="card" id="btnEvents">
+                <div class="card-icon">📢</div>
+                <div class="card-title">События</div>
+            </div>
+            <div class="card" id="btnMeetings">
+                <div class="card-icon">👨‍👩‍👧</div>
+                <div class="card-title">Род. собрания</div>
+            </div>
         </div>
 
-        <div class="card">
+        <div class="card" style="cursor:default;">
             <h3>💬 Чаты</h3>
             <button class="btn-outline" id="btnParentChat">👨‍👩‍👧 Родительский чат</button>
             <button class="btn-outline" id="btnTeacherChat">👩‍🏫 Чат учителей</button>
         </div>
 
         <!-- АДМИН-ПАНЕЛЬ -->
-        <div id="adminPanel" class="card hidden">
+        <div id="adminPanel" class="card hidden" style="cursor:default;">
             <h3>⚙️ Управление</h3>
             <button class="btn" id="btnShowRequests">📬 Заявки</button>
             <button class="btn-outline" id="btnEditContent">📝 Редактировать разделы</button>
@@ -168,14 +195,9 @@
             <button class="btn-outline" id="closeChatsModal">Закрыть</button>
         </div>
     </div>
-
-    <div class="site-link">
-        <a href="https://telegrall.github.io/GDAMICH/" target="_blank">🐋 Сайт компании GDAMICH</a>
-    </div>
 </div>
 
 <script>
-    // Supabase
     const SUPABASE_URL = "https://iiuahjmpszfcgtwapidt.supabase.co";
     const SUPABASE_KEY = "sb_publishable_iFYpqkv4D0qEOj4Dn1X9Nw_OH9d5Bji";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -187,7 +209,6 @@
     tg.ready();
     tg.expand();
     
-    // Контент разделов
     let sections = {
         schedule: { title: '📅 Расписание', content: 'Расписание пока не добавлено' },
         menu: { title: '🍽 Меню', content: 'Меню пока не добавлено' },
@@ -205,7 +226,6 @@
         alert(sections[key].title + '\n\n' + sections[key].content.replace(/<[^>]*>/g, ''));
     }
     
-    // Экраны
     const loginScreen = document.getElementById('loginScreen');
     const registerScreen = document.getElementById('registerScreen');
     const pendingScreen = document.getElementById('pendingScreen');
@@ -214,7 +234,6 @@
     const contentModal = document.getElementById('contentModal');
     const chatsModal = document.getElementById('chatsModal');
     
-    // Кнопки входа
     document.getElementById('checkNicknameBtn').addEventListener('click', checkNickname);
     document.getElementById('submitRegisterBtn').addEventListener('click', registerUser);
     document.getElementById('backToLoginBtn').addEventListener('click', () => {
@@ -224,7 +243,6 @@
     document.getElementById('logoutFromPendingBtn').addEventListener('click', logout);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     
-    // Кнопки разделов
     document.getElementById('pendingBtnSchedule').addEventListener('click', () => showSection('schedule'));
     document.getElementById('pendingBtnMenu').addEventListener('click', () => showSection('menu'));
     document.getElementById('pendingBtnEvents').addEventListener('click', () => showSection('events'));
@@ -237,7 +255,6 @@
     document.getElementById('btnParentChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
     document.getElementById('btnTeacherChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
     
-    // Админка
     document.getElementById('btnShowRequests').addEventListener('click', showRequests);
     document.getElementById('closeRequestsModal').addEventListener('click', () => requestsModal.classList.add('hidden'));
     document.getElementById('btnEditContent').addEventListener('click', () => {
@@ -254,7 +271,6 @@
         contentModal.classList.add('hidden');
     });
     
-    // Управление чатами
     let schoolChats = [];
     function loadChats() {
         const saved = localStorage.getItem('school_chats');
