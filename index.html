@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Школьный помощник</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -38,30 +37,6 @@
             margin-bottom: 24px;
             font-size: 0.9rem;
         }
-        .user-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 8px 12px;
-            background: #1f2c38;
-            border-radius: 40px;
-        }
-        .user-name {
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .admin-badge {
-            background: #2b9aff;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            border: none;
-        }
         .grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -77,9 +52,9 @@
             transition: 0.2s;
             border: 1px solid #2b3b4c;
         }
-        .card:hover {
+        .card:active {
             background: #2a3a4a;
-            transform: translateY(-2px);
+            transform: scale(0.98);
         }
         .card-icon {
             font-size: 2.2rem;
@@ -88,41 +63,6 @@
         .card-title {
             font-weight: 600;
             font-size: 1rem;
-        }
-        .chat-section {
-            margin-top: 16px;
-        }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .section-header h2 {
-            font-size: 1.3rem;
-            color: #C0E0FF;
-        }
-        .class-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .class-item {
-            background: #1f2c38;
-            border-radius: 16px;
-            padding: 14px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            border: 1px solid #2b3b4c;
-        }
-        .class-item.locked {
-            opacity: 0.8;
-        }
-        .lock-icon {
-            color: #8e9eae;
-            margin-left: 8px;
         }
         .modal {
             position: fixed;
@@ -144,10 +84,8 @@
             background: #17212b;
             border-radius: 28px;
             padding: 24px;
-            max-width: 500px;
+            max-width: 400px;
             width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
         }
         .modal-header {
             display: flex;
@@ -197,176 +135,84 @@
             border: 1px solid #2b9aff;
             color: #2b9aff;
         }
-        .chat-messages {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .admin-link {
+            text-align: center;
+            margin-top: 30px;
         }
-        .message {
-            background: #1f2c38;
-            border-radius: 16px;
-            padding: 10px 14px;
-        }
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: #8e9eae;
-            margin-bottom: 4px;
-        }
-        .message-text {
-            word-break: break-word;
-        }
-        .message-input-area {
-            display: flex;
-            gap: 8px;
-        }
-        .message-input {
-            flex: 1;
-            background: #0e1621;
-            border: 1px solid #2b3b4c;
-            border-radius: 20px;
-            padding: 12px 16px;
-            color: white;
-        }
-        .send-btn {
-            background: #2b9aff;
-            border: none;
-            border-radius: 20px;
-            padding: 0 20px;
-            color: white;
-            font-weight: 600;
+        .admin-link span {
+            color: #4a6a8a;
+            font-size: 1.5rem;
             cursor: pointer;
-        }
-        .admin-panel {
-            margin-top: 20px;
-            padding: 16px;
-            background: #1a2530;
-            border-radius: 20px;
-            display: none;
-        }
-        .admin-panel.show {
-            display: block;
-        }
-        .hidden {
-            display: none !important;
+            opacity: 0.4;
         }
         .footer-note {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 20px;
             color: #6c86a3;
             font-size: 0.75rem;
         }
-        .admin-link {
-            text-align: right;
-            margin-top: 8px;
+        .user-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
         }
-        .admin-link span {
-            color: #6c86a3;
+        .admin-badge {
+            background: #1f2c38;
+            color: #8e9eae;
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 0.7rem;
-            cursor: pointer;
-            opacity: 0.5;
+            border: 1px solid #2b3b4c;
         }
     </style>
 </head>
 <body>
-<div class="container" id="appContainer">
+<div class="container">
     <h1>🏫 Школьный помощник</h1>
-    <div class="subtitle" id="pageSubtitle">Всё для учёбы в одном месте</div>
+    <div class="subtitle">Всё для учёбы в одном месте</div>
     
     <div class="user-bar" id="userBar">
-        <span class="user-name" id="userNameDisplay">👤 Загрузка...</span>
-        <button class="admin-badge" id="adminBtn" onclick="showAdminLogin()">⚙️</button>
-    </div>    <!-- Главный экран с разделами -->
+        <span class="admin-badge" id="adminBadge" style="display: none;">👑 @Maksikrue</span>
+    </div>
+
+    <!-- Главный экран -->
     <div id="mainScreen">
         <div class="grid">
-            <div class="card" onclick="showContent('schedule')">
+            <div class="card" onclick="showSection('schedule')">
                 <div class="card-icon">📅</div>
-                <div class="card-title">Расписание уроков</div>
+                <div class="card-title">Расписание</div>
             </div>
-            <div class="card" onclick="showContent('clubs')">
+            <div class="card" onclick="showSection('clubs')">
                 <div class="card-icon">🎨</div>
                 <div class="card-title">Кружки</div>
             </div>
-            <div class="card" onclick="showContent('menu')">
+            <div class="card" onclick="showSection('menu')">
                 <div class="card-icon">🍽</div>
-                <div class="card-title">Меню столовой</div>
+                <div class="card-title">Меню</div>
             </div>
-            <div class="card" onclick="showContent('events')">
+            <div class="card" onclick="showSection('events')">
                 <div class="card-icon">📢</div>
-                <div class="card-title">Важные события</div>
+                <div class="card-title">События</div>
             </div>
-            <div class="card" onclick="showContent('map')">
+            <div class="card" onclick="showSection('map')">
                 <div class="card-icon">🗺</div>
-                <div class="card-title">Карта школы</div>
+                <div class="card-title">Карта</div>
             </div>
-            <div class="card" onclick="showContent('meetings')">
+            <div class="card" onclick="showSection('meetings')">
                 <div class="card-icon">👨‍👩‍👧</div>
-                <div class="card-title">Род. собрания</div>
-            </div>
-        </div>
-
-        <!-- Раздел чатов -->
-        <div class="chat-section">
-            <div class="section-header">
-                <h2>💬 Чаты</h2>
-            </div>
-            <div class="class-list">
-                <div class="class-item" onclick="openGeneralChat()">
-                    <span>🌐 Общий школьный чат</span>
-                    <span>→</span>
-                </div>
-                <div class="class-item" onclick="showClassList()">
-                    <span>📚 Чаты классов</span>
-                    <span>→</span>
-                </div>
+                <div class="card-title">Собрания</div>
             </div>
         </div>
     </div>
 
-    <!-- Экран выбора класса -->
-    <div id="classListScreen" style="display: none;">
-        <button class="btn-outline" style="margin-bottom: 16px; padding: 10px;" onclick="backToMain()">← Назад</button>
-        <h2 style="margin-bottom: 16px;">Выбери свой класс</h2>
-        <div id="classListContainer" class="class-list"></div>
-    </div>
-
-    <!-- Экран чата -->
-    <div id="chatScreen" style="display: none;">
-        <button class="btn-outline" style="margin-bottom: 16px; padding: 10px;" onclick="closeChat()">← Назад</button>
-        <h2 id="chatTitle" style="margin-bottom: 16px;">Чат</h2>
-        <div id="chatMessages" class="chat-messages"></div>
-        <div class="message-input-area">
-            <input type="text" id="messageInput" class="message-input" placeholder="Сообщение...">
-            <button class="send-btn" onclick="sendMessage()">➤</button>
-        </div>
-    </div>
-
-    <!-- Модалка просмотра контента -->
+    <!-- Модалка контента -->
     <div class="modal" id="contentModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title" id="modalTitle">Расписание</span>
+                <span class="modal-title" id="modalTitle">Раздел</span>
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
             <div id="modalBody"></div>
-        </div>
-    </div>
-
-    <!-- Модалка ввода кода класса -->
-    <div class="modal" id="codeModal" onclick="if(event.target === this) closeCodeModal()">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title">🔐 Введите код класса</span>
-                <button class="close-btn" onclick="closeCodeModal()">✕</button>
-            </div>
-            <p style="margin-bottom: 16px; color: #8e9eae;">Код можно получить у классного руководителя</p>
-            <input type="text" id="classCodeInput" class="input-field" placeholder="Например: class5a2024">
-            <button class="btn" onclick="verifyClassCode()">Подтвердить</button>
-            <p style="margin-top: 12px; font-size: 0.8rem; color: #6c86a3;">Код запоминается на 30 дней</p>
         </div>
     </div>
 
@@ -374,7 +220,7 @@
     <div class="modal" id="adminLoginModal" onclick="if(event.target === this) closeAdminLoginModal()">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="modal-title">⚙️ Вход для администратора</span>
+                <span class="modal-title">⚙️ Вход</span>
                 <button class="close-btn" onclick="closeAdminLoginModal()">✕</button>
             </div>
             <input type="password" id="adminPasswordInput" class="input-field" placeholder="Пароль">
@@ -383,284 +229,185 @@
     </div>
 
     <!-- Админ-панель -->
-    <div id="adminPanel" class="admin-panel">
-        <h3 style="margin-bottom: 16px;">⚙️ Панель управления</h3>
-        <p style="margin-bottom: 16px; color: #4bcb6e;">👋 Привет, @Maksikrue</p>
+    <div id="adminPanel" style="display: none; margin-top: 24px; padding: 20px; background: #1a2530; border-radius: 20px;">
+        <h3>⚙️ Панель управления</h3>
+        <p style="margin: 16px 0; color: #4bcb6e;">👋 Привет, @Maksikrue</p>
         
-        <h4 style="margin: 16px 0 8px;">📅 Загрузить картинки разделов</h4>
-        <select id="sectionSelect" class="input-field" style="margin-bottom: 8px;">
-            <option value="schedule">Расписание уроков</option>
+        <h4>📅 Загрузить картинку</h4>
+        <select id="sectionSelect" class="input-field">
+            <option value="schedule">Расписание</option>
             <option value="clubs">Кружки</option>
             <option value="menu">Меню</option>
-            <option value="map">Карта школы</option>
+            <option value="map">Карта</option>
         </select>
-        <input type="file" id="imageUpload" accept="image/*" class="input-field" style="padding: 10px;">
-        <button class="btn" onclick="uploadSectionImage()" style="margin-bottom: 16px;">Загрузить картинку</button>
+        <input type="file" id="imageUpload" accept="image/*" class="input-field">
+        <button class="btn" onclick="uploadImage()" style="margin-bottom: 16px;">Загрузить</button>
         
-        <h4 style="margin: 16px 0 8px;">📝 Текст для событий и собраний</h4>
-        <select id="textSectionSelect" class="input-field" style="margin-bottom: 8px;">
-            <option value="events">Важные события</option>
-            <option value="meetings">Родительские собрания</option>
+        <h4>📝 Текст событий и собраний</h4>
+        <select id="textSectionSelect" class="input-field">
+            <option value="events">События</option>
+            <option value="meetings">Собрания</option>
         </select>
         <textarea id="textContentInput" class="input-field" rows="4" placeholder="Введите текст..."></textarea>
-        <button class="btn" onclick="saveTextContent()" style="margin-bottom: 16px;">Сохранить текст</button>
+        <button class="btn" onclick="saveText()">Сохранить текст</button>
         
-        <h4 style="margin: 16px 0 8px;">🔑 Управление кодами классов</h4>
-        <div id="adminClassList"></div>
-        <button class="btn-outline" onclick="addNewClass()" style="margin-top: 8px;">+ Добавить класс</button>
-        
-        <button class="btn-outline" onclick="closeAdminPanel()" style="margin-top: 20px;">Закрыть панель</button>
+        <button class="btn-outline" onclick="closeAdminPanel()" style="margin-top: 20px;">Закрыть</button>
     </div>
     
     <div class="admin-link">
-        <span onclick="showAdminLogin()">⚙️</span>
+        <span id="gearBtn" onclick="showAdminLogin()" style="display: none;">⚙️</span>
     </div>
-    <div class="footer-note">🐋 Школьный помощник · v1.0</div>
-</div><script>
-    // Конфигурация Supabase
-    const SUPABASE_URL = "https://iiuahjmpszfcgtwapidt.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_iFYpqkv4D0qEOj4Dn1X9Nw_OH9d5Bji";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Админ-данные
+    <div class="footer-note">🐋 Школьный помощник · v2.0</div>
+</div>
+
+<script>
     const ADMIN_USERNAME = "Maksikrue";
     const ADMIN_PASSWORD = "MaximAdmin2024";
+    const BOT_TOKEN = "8637559726:AAEcA1EgeUDQUYAt9PnPC4T9Zpagy4_cf1w";
+    const YOUR_CHAT_ID = "ТВОЙ_CHAT_ID"; // Замени на свой Telegram ID
     
-    // Глобальные переменные
     let tg = window.Telegram.WebApp;
     let currentUser = null;
-    let currentChat = null;
-    let pendingClassId = null;
     let isAdmin = false;
-    let sectionsData = {};
     
-    // Инициализация
+    // Данные разделов (хранятся в localStorage)
+    let sections = {
+        schedule: { type: 'image', content: null },
+        clubs: { type: 'image', content: null },
+        menu: { type: 'image', content: null },
+        events: { type: 'text', content: 'Пока нет важных событий' },
+        map: { type: 'image', content: null },
+        meetings: { type: 'text', content: 'Пока нет информации о собраниях' }
+    };
+    
     tg.ready();
     tg.expand();
     
-    async function init() {
+    function init() {
+        // Загружаем сохранённые данные
+        const saved = localStorage.getItem('school_sections');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                sections = { ...sections, ...parsed };
+            } catch(e) {}
+        }
+        
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             currentUser = tg.initDataUnsafe.user;
-            document.getElementById('userNameDisplay').innerHTML = `👤 ${currentUser.first_name || 'Ученик'}`;
-            if (currentUser.username) {
-                if (currentUser.username === ADMIN_USERNAME) {
-                    document.getElementById('adminBtn').style.display = 'block';
-                }
+            if (currentUser.username === ADMIN_USERNAME) {
+                document.getElementById('adminBadge').style.display = 'inline-block';
+                isAdmin = true;
+                document.getElementById('gearBtn').style.display = 'inline';
+            } else {
+                // Если ник не совпал, показываем шестерёнку для ручного входа
+                document.getElementById('gearBtn').style.display = 'inline';
             }
         } else {
-            currentUser = { id: 'test', first_name: 'Гость', username: 'guest' };
-            document.getElementById('userNameDisplay').innerHTML = `👤 Гость`;
-        }
-        await loadSectionsContent();
-    }
-    
-    async function loadSectionsContent() {
-        const { data } = await supabase.from('section_content').select('*');
-        if (data) {
-            data.forEach(item => { sectionsData[item.section_key] = item; });
+            document.getElementById('gearBtn').style.display = 'inline';
         }
     }
     
-    function showContent(sectionKey) {
-        const section = sectionsData[sectionKey];
+    function showSection(key) {
         const titles = {
-            schedule: '📅 Расписание уроков', clubs: '🎨 Расписание кружков',
-            menu: '🍽 Меню столовой', events: '📢 Важные события',
-            map: '🗺 Карта школы', meetings: '👨‍👩‍👧 Родительские собрания'
+            schedule: '📅 Расписание уроков',
+            clubs: '🎨 Расписание кружков',
+            menu: '🍽 Меню столовой',
+            events: '📢 Важные события',
+            map: '🗺 Карта школы',
+            meetings: '👨‍👩‍👧 Родительские собрания'
         };
-        document.getElementById('modalTitle').innerText = titles[sectionKey] || sectionKey;
-        const modalBody = document.getElementById('modalBody');
+        document.getElementById('modalTitle').innerText = titles[key];
+        const body = document.getElementById('modalBody');
+        const section = sections[key];
         
-        if (section && section.content_type === 'image' && section.content_url) {
-            modalBody.innerHTML = `<img src="${section.content_url}" class="modal-image" onerror="this.src='https://placehold.co/600x400/1f2c38/8e9eae?text=Картинка+не+загружена'">`;
-        } else if (section && section.content_type === 'text' && section.content_url) {
-            modalBody.innerHTML = `<p style="line-height: 1.6; white-space: pre-wrap;">${escapeHtml(section.content_url)}</p>`;
+        if (section.type === 'image' && section.content) {
+            body.innerHTML = `<img src="${section.content}" class="modal-image" onerror="this.src='https://placehold.co/600x400/1f2c38/8e9eae?text=Картинка+не+загружена'">`;
+        } else if (section.type === 'text' && section.content) {
+            body.innerHTML = `<p style="line-height: 1.6;">${escapeHtml(section.content)}</p>`;
         } else {
-            modalBody.innerHTML = `<p style="color: #8e9eae; text-align: center; padding: 20px;">Пока нет информации</p>`;
+            body.innerHTML = `<p style="color: #8e9eae; text-align: center; padding: 20px;">Пока нет информации</p>`;
         }
         document.getElementById('contentModal').classList.add('show');
     }
     
-    function closeModal() { document.getElementById('contentModal').classList.remove('show'); }
-    
-    function showClassList() {
-        document.getElementById('mainScreen').style.display = 'none';
-        document.getElementById('classListScreen').style.display = 'block';
-        loadClasses();
+    function closeModal() {
+        document.getElementById('contentModal').classList.remove('show');
     }
     
-    async function loadClasses() {
-        const { data } = await supabase.from('class_chats').select('*').order('class_name');
-        const container = document.getElementById('classListContainer');
-        if (!data || data.length === 0) {
-            container.innerHTML = '<p style="color: #8e9eae;">Нет доступных классов</p>';
-            return;
-        }
-        container.innerHTML = data.map(c => {
-            const verified = localStorage.getItem(`class_${c.id}_verified`);
-            let verifiedDate = null;
-            if (verified) {
-                try { verifiedDate = new Date(JSON.parse(verified).date); } catch(e) {}
-            }
-            const isExpired = !verifiedDate || (new Date() - verifiedDate) > 30 * 24 * 60 * 60 * 1000;
-            const isLocked = isExpired;
-            return `<div class="class-item ${isLocked ? 'locked' : ''}" onclick="${isLocked ? `requestClassCode(${c.id})` : `openClassChat(${c.id}, '${escapeHtml(c.class_name)}')`}">
-                <span>📚 ${escapeHtml(c.class_name)} ${isLocked ? '<span class="lock-icon">🔒</span>' : ''}</span>
-                <span>→</span>
-            </div>`;
-        }).join('');
+    function showAdminLogin() {
+        document.getElementById('adminLoginModal').classList.add('show');
     }
     
-    function requestClassCode(classId) {
-        pendingClassId = classId;
-        document.getElementById('codeModal').classList.add('show');
+    function closeAdminLoginModal() {
+        document.getElementById('adminLoginModal').classList.remove('show');
     }
     
-    async function verifyClassCode() {
-        const code = document.getElementById('classCodeInput').value.trim();
-        if (!code) { alert('Введите код'); return; }
-        const { data } = await supabase.from('class_chats').select('*').eq('id', pendingClassId).single();
-        if (data && data.access_code === code) {
-            localStorage.setItem(`class_${pendingClassId}_verified`, JSON.stringify({ date: new Date().toISOString() }));
-            closeCodeModal();
-            loadClasses();
-            const className = data.class_name;
-            openClassChat(pendingClassId, className);
-        } else {
-            alert('Неверный код');
-        }
+    async function sendLoginNotification() {
+        const message = `🔔 Вход в админ-панель Школьного помощника.\n👤 Пользователь: ${currentUser?.first_name || 'Неизвестный'}\n📱 Время: ${new Date().toLocaleString('ru')}`;
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: YOUR_CHAT_ID, text: message })
+            });
+        } catch(e) {}
     }
     
-    function closeCodeModal() { document.getElementById('codeModal').classList.remove('show'); document.getElementById('classCodeInput').value = ''; }
-    
-    function openGeneralChat() { currentChat = { type: 'general' }; openChatScreen('🌐 Общий чат'); loadMessages(); }
-    function openClassChat(classId, className) { currentChat = { type: 'class', id: classId, name: className }; openChatScreen(`📚 ${className}`); loadMessages(); }
-    
-    function openChatScreen(title) {
-        document.getElementById('mainScreen').style.display = 'none';
-        document.getElementById('classListScreen').style.display = 'none';
-        document.getElementById('chatScreen').style.display = 'block';
-        document.getElementById('chatTitle').innerText = title;
-        document.getElementById('pageSubtitle').style.display = 'none';
-    }
-    
-    function closeChat() {
-        document.getElementById('chatScreen').style.display = 'none';
-        document.getElementById('classListScreen').style.display = 'none';
-        document.getElementById('mainScreen').style.display = 'block';
-        document.getElementById('pageSubtitle').style.display = 'block';
-        currentChat = null;
-    }
-    
-    function backToMain() { closeChat(); }
-    
-    async function loadMessages() {
-        if (!currentChat) return;
-        let query = supabase.from('chat_messages').select('*').order('created_at', { ascending: true }).limit(100);
-        if (currentChat.type === 'general') { query = query.eq('chat_type', 'general'); }
-        else { query = query.eq('chat_type', 'class').eq('class_id', currentChat.id); }
-        const { data } = await query;
-        const container = document.getElementById('chatMessages');
-        if (!data || data.length === 0) { container.innerHTML = '<p style="color: #8e9eae; text-align: center;">Нет сообщений</p>'; return; }
-        container.innerHTML = data.map(m => `
-            <div class="message"><div class="message-header"><span>${escapeHtml(m.user_name)}</span><span>${formatTime(m.created_at)}</span></div>
-            <div class="message-text">${escapeHtml(m.message)}</div></div>
-        `).join('');
-        container.scrollTop = container.scrollHeight;
-    }
-    
-    async function sendMessage() {
-        const input = document.getElementById('messageInput');
-        const text = input.value.trim();
-        if (!text || !currentChat) return;
-        const userName = currentUser?.first_name || 'Аноним';
-        const userId = String(currentUser?.id || 'guest');
-        const messageData = {
-            chat_type: currentChat.type,
-            class_id: currentChat.type === 'class' ? currentChat.id : null,
-            user_id: userId,
-            user_name: userName,
-            message: text
-        };
-        await supabase.from('chat_messages').insert(messageData);
-        input.value = '';
-        loadMessages();
-    }
-    
-    function showAdminLogin() { document.getElementById('adminLoginModal').classList.add('show'); }
-    function closeAdminLoginModal() { document.getElementById('adminLoginModal').classList.remove('show'); }
-    
-    function loginAsAdmin() {
+    async function loginAsAdmin() {
         const pwd = document.getElementById('adminPasswordInput').value;
         if (pwd === ADMIN_PASSWORD) {
             isAdmin = true;
             closeAdminLoginModal();
-            document.getElementById('adminPanel').classList.add('show');
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('adminBadge').style.display = 'inline-block';
             document.getElementById('adminPasswordInput').value = '';
-            loadAdminClassList();
-        } else { alert('Неверный пароль'); }
+            await sendLoginNotification();
+        } else {
+            alert('Неверный пароль');
+        }
     }
     
-    function closeAdminPanel() { document.getElementById('adminPanel').classList.remove('show'); isAdmin = false; }
+    function closeAdminPanel() {
+        document.getElementById('adminPanel').style.display = 'none';
+    }
     
-    async function uploadSectionImage() {
-        if (!isAdmin) return;
+    function uploadImage() {
+        if (!isAdmin) { alert('Нет доступа'); return; }
         const section = document.getElementById('sectionSelect').value;
-        const fileInput = document.getElementById('imageUpload');
-        const file = fileInput.files[0];
+        const file = document.getElementById('imageUpload').files[0];
         if (!file) { alert('Выберите файл'); return; }
-        const fileName = `${section}_${Date.now()}.${file.name.split('.').pop()}`;
-        const { data, error } = await supabase.storage.from('school_content').upload(fileName, file);
-        if (error) { alert('Ошибка загрузки: ' + error.message); return; }
-        const { data: urlData } = supabase.storage.from('school_content').getPublicUrl(fileName);
-        const publicUrl = urlData.publicUrl;
-        await supabase.from('section_content').upsert({ section_key: section, title: section, content_type: 'image', content_url: publicUrl, updated_at: new Date() }, { onConflict: 'section_key' });
-        alert('✅ Картинка загружена!');
-        fileInput.value = '';
-        await loadSectionsContent();
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            sections[section] = { type: 'image', content: e.target.result };
+            localStorage.setItem('school_sections', JSON.stringify(sections));
+            alert('✅ Картинка сохранена!');
+            document.getElementById('imageUpload').value = '';
+        };
+        reader.readAsDataURL(file);
     }
     
-    async function saveTextContent() {
-        if (!isAdmin) return;
+    function saveText() {
+        if (!isAdmin) { alert('Нет доступа'); return; }
         const section = document.getElementById('textSectionSelect').value;
         const text = document.getElementById('textContentInput').value.trim();
         if (!text) { alert('Введите текст'); return; }
-        await supabase.from('section_content').upsert({ section_key: section, title: section, content_type: 'text', content_url: text, updated_at: new Date() }, { onConflict: 'section_key' });
+        
+        sections[section] = { type: 'text', content: text };
+        localStorage.setItem('school_sections', JSON.stringify(sections));
         alert('✅ Текст сохранён!');
         document.getElementById('textContentInput').value = '';
-        await loadSectionsContent();
     }
     
-    async function loadAdminClassList() {
-        const { data } = await supabase.from('class_chats').select('*').order('class_name');
-        const container = document.getElementById('adminClassList');
-        if (!data) return;
-        container.innerHTML = data.map(c => `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>${c.class_name} (${c.access_code})</span><button onclick="deleteClass(${c.id})" style="background:#ff3b30; border:none; color:white; padding:4px 10px; border-radius:12px;">Удалить</button></div>`).join('');
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-    
-    async function deleteClass(id) { if (confirm('Удалить класс?')) { await supabase.from('class_chats').delete().eq('id', id); loadAdminClassList(); } }
-    
-    async function addNewClass() {
-        const name = prompt('Название класса (например, 5А):');
-        if (!name) return;
-        const code = prompt('Код доступа (например, class5a2024):');
-        if (!code) return;
-        await supabase.from('class_chats').insert({ class_name: name, access_code: code });
-        loadAdminClassList();
-    }
-    
-    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
-    function formatTime(d) { return new Date(d).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }); }
     
     init();
-    
-    // Подписка на новые сообщения
-    supabase.channel('chat_room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
-        if (currentChat) {
-            const msg = payload.new;
-            if ((currentChat.type === 'general' && msg.chat_type === 'general') || (currentChat.type === 'class' && msg.class_id === currentChat.id)) { loadMessages(); }
-        }
-    }).subscribe();
 </script>
 </body>
 </html>
