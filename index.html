@@ -52,13 +52,11 @@
 </div>
 
 <div class="container" id="app">
-    <!-- ЭКРАН ЗАГРУЗКИ -->
     <div id="loadingScreen">
         <h1>🏫 Школьный помощник</h1>
         <div class="card" style="text-align:center;"><p>⏳ Проверка соединения...</p></div>
     </div>
 
-    <!-- ЭКРАН ОШИБКИ -->
     <div id="errorScreen" class="hidden">
         <h1>🐋 Упс...</h1>
         <div class="card warning-message">
@@ -68,7 +66,6 @@
         </div>
     </div>
 
-    <!-- ЭКРАН ВХОДА -->
     <div id="loginScreen" class="hidden">
         <h1>🏫 Школьный помощник</h1>
         <div class="card">
@@ -77,18 +74,15 @@
         </div>
     </div>
 
-    <!-- ЭКРАН РЕГИСТРАЦИИ -->
     <div id="registerScreen" class="hidden">
         <h1>📝 Регистрация</h1>
         <div class="card">
             <input type="text" id="regFullName" class="input-field" placeholder="ФИО полностью">
-            <input type="date" id="regBirthDate" class="input-field" placeholder="Дата рождения">
             <button class="btn" id="submitRegisterBtn">Отправить заявку</button>
             <button class="btn-outline" id="backToLoginBtn">← Назад</button>
         </div>
     </div>
 
-    <!-- ЭКРАН ОЖИДАНИЯ -->
     <div id="pendingScreen" class="hidden">
         <h1>⏳ На проверке</h1>
         <div class="card"><p>Ваша заявка рассматривается. Пока доступны только информационные разделы.</p></div>
@@ -101,7 +95,6 @@
         <button class="btn-outline" id="logoutFromPendingBtn">🚪 Выйти</button>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="mainScreen" class="hidden">
         <h1>🏫 Школьный помощник</h1>
         <div class="subtitle"><span id="displayNickname"></span><span id="teacherBadge" class="badge hidden">👩‍🏫 Учитель</span></div>
@@ -123,7 +116,6 @@
         <button class="btn-outline" id="logoutBtn">🚪 Выйти</button>
     </div>
 
-    <!-- МОДАЛКИ -->
     <div id="requestsModal" class="modal hidden"><div class="modal-content"><h3>📬 Заявки</h3><div id="requestsList"></div><button class="btn-outline" id="closeRequestsModal">Закрыть</button></div></div>
     <div id="contentModal" class="modal hidden"><div class="modal-content"><h3>📝 Редактировать раздел</h3>
         <select id="contentSectionSelect" class="input-field"><option value="schedule">📅 Расписание</option><option value="menu">🍽 Меню</option><option value="events">📢 События</option><option value="meetings">👨‍👩‍👧 Род. собрания</option></select>
@@ -219,10 +211,9 @@
     document.getElementById('submitRegisterBtn').addEventListener('click', async () => {
         const nn = document.getElementById('loginNickname').value.trim();
         const fn = document.getElementById('regFullName').value.trim();
-        const bd = document.getElementById('regBirthDate').value;
-        if(!fn || !bd) return alert('Заполните поля');
+        if(!fn) return alert('Введите ФИО');
         if(sb) {
-            await sb.from('school_users').insert({ nickname: nn, full_name: fn, birth_date: bd, status: 'pending', role: 'parent' });
+            await sb.from('school_users').insert({ nickname: nn, full_name: fn, status: 'pending', role: 'parent' });
         }
         registerScreen.classList.add('hidden');
         showPendingScreen();
@@ -282,7 +273,7 @@
         const list = document.getElementById('requestsList');
         if(sb) {
             const { data } = await sb.from('school_users').select('*').eq('status', 'pending');
-            list.innerHTML = data?.length ? data.map(u => `<div class="request-item"><b>${u.nickname}</b><br>${u.full_name}<br>${u.birth_date}<br><button class="btn" onclick="window.approve(${u.id})">✅</button><button class="btn-outline" onclick="window.ban(${u.id})">⛔</button></div>`).join('') : '<p>Нет заявок</p>';
+            list.innerHTML = data?.length ? data.map(u => `<div class="request-item"><b>${u.nickname}</b><br>${u.full_name}<br><button class="btn" onclick="window.approve(${u.id})">✅</button><button class="btn-outline" onclick="window.ban(${u.id})">⛔</button></div>`).join('') : '<p>Нет заявок</p>';
         } else list.innerHTML = '<p>База данных недоступна</p>';
         modal.classList.remove('hidden');
     });
