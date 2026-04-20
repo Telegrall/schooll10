@@ -20,11 +20,12 @@
         .request-item { background:#17212b; border-radius:16px; padding:16px; margin-bottom:12px; }
         .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; padding:16px; z-index:1000; }
         .modal-content { background:#17212b; border-radius:28px; padding:24px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     </style>
 </head>
 <body>
 <div class="container" id="app">
-    <!-- ЭКРАН ВХОДА / РЕГИСТРАЦИИ -->
+    <!-- ЭКРАН ВХОДА -->
     <div id="loginScreen">
         <h1>🏫 Школьный помощник</h1>
         <div class="card">
@@ -33,40 +34,46 @@
         </div>
     </div>
 
-    <!-- ЭКРАН РЕГИСТРАЦИИ НОВОГО ПОЛЬЗОВАТЕЛЯ -->
+    <!-- ЭКРАН РЕГИСТРАЦИИ -->
     <div id="registerScreen" class="hidden">
         <h1>📝 Регистрация</h1>
         <div class="card">
             <input type="text" id="regFullName" class="input-field" placeholder="ФИО полностью">
-            <input type="number" id="regAge" class="input-field" placeholder="Возраст">
+            <input type="date" id="regBirthDate" class="input-field" placeholder="Дата рождения">
             <button class="btn" id="submitRegisterBtn">Отправить заявку</button>
             <button class="btn-outline" id="backToLoginBtn">← Назад</button>
         </div>
     </div>
 
-    <!-- ЭКРАН ОЖИДАНИЯ (СТАТУС: НА ПРОВЕРКЕ) -->
+    <!-- ЭКРАН ОЖИДАНИЯ (МИНИМАЛЬНЫЙ ДОСТУП) -->
     <div id="pendingScreen" class="hidden">
-        <h1>⏳ Заявка на рассмотрении</h1>
+        <h1>⏳ На проверке</h1>
         <div class="card">
-            <p>Ваши данные отправлены администратору.</p>
-            <p>После одобрения вы получите доступ к чатам.</p>
-            <button class="btn-outline" id="logoutFromPendingBtn">Выйти</button>
+            <p>Ваша заявка рассматривается.</p>
+            <p>Пока вам доступны только информационные разделы.</p>
         </div>
+        <div class="grid-2">
+            <div class="card" id="pendingBtnSchedule">📅 Расписание</div>
+            <div class="card" id="pendingBtnMenu">🍽 Меню</div>
+            <div class="card" id="pendingBtnEvents">📢 События</div>
+            <div class="card" id="pendingBtnMeetings">👨‍👩‍👧 Род. собрания</div>
+        </div>
+        <button class="btn-outline" id="logoutFromPendingBtn">🚪 Выйти</button>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН (ДЛЯ ОДОБРЕННЫХ) -->
+    <!-- ГЛАВНЫЙ ЭКРАН (ОДОБРЕННЫЕ) -->
     <div id="mainScreen" class="hidden">
         <h1>🏫 Школьный помощник</h1>
         <div class="subtitle">
             <span id="displayNickname"></span>
-            <span id="adminBadge" class="badge hidden">👑 @Maksikrue</span>
             <span id="teacherBadge" class="badge hidden">👩‍🏫 Учитель</span>
         </div>
         
-        <div class="card">
-            <h3>📅 Разделы</h3>
-            <button class="btn-outline" id="btnSchedule">📅 Расписание</button>
-            <button class="btn-outline" id="btnMenu">🍽 Меню</button>
+        <div class="grid-2">
+            <div class="card" id="btnSchedule">📅 Расписание</div>
+            <div class="card" id="btnMenu">🍽 Меню</div>
+            <div class="card" id="btnEvents">📢 События</div>
+            <div class="card" id="btnMeetings">👨‍👩‍👧 Род. собрания</div>
         </div>
 
         <div class="card">
@@ -75,10 +82,11 @@
             <button class="btn-outline" id="btnTeacherChat">👩‍🏫 Чат учителей</button>
         </div>
 
-        <!-- АДМИН-ПАНЕЛЬ (только @Maksikrue) -->
+        <!-- АДМИН-ПАНЕЛЬ (только @Maksikrue, скрыта в коде) -->
         <div id="adminPanel" class="card hidden">
-            <h3>⚙️ Админ-панель</h3>
-            <button class="btn" id="btnShowRequests">📬 Заявки на вступление</button>
+            <h3>⚙️ Управление</h3>
+            <button class="btn" id="btnShowRequests">📬 Заявки</button>
+            <button class="btn-outline" id="btnEditContent">📝 Редактировать разделы</button>
         </div>
 
         <button class="btn-outline" id="logoutBtn">🚪 Выйти</button>
@@ -90,6 +98,22 @@
             <h3>📬 Заявки на вступление</h3>
             <div id="requestsList"></div>
             <button class="btn-outline" id="closeRequestsModal">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: РЕДАКТОР КОНТЕНТА -->
+    <div id="contentModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>📝 Редактировать раздел</h3>
+            <select id="contentSectionSelect" class="input-field">
+                <option value="schedule">Расписание</option>
+                <option value="menu">Меню</option>
+                <option value="events">События</option>
+                <option value="meetings">Род. собрания</option>
+            </select>
+            <textarea id="contentTextInput" class="input-field" rows="6" placeholder="Введите текст или HTML..."></textarea>
+            <button class="btn" id="saveContentBtn">Сохранить</button>
+            <button class="btn-outline" id="closeContentModal">Закрыть</button>
         </div>
     </div>
 </div>
@@ -106,14 +130,40 @@
     tg.ready();
     tg.expand();
     
-    // Элементы экранов
+    // Контент разделов (из localStorage)
+    let sections = {
+        schedule: { title: '📅 Расписание', content: 'Расписание пока не добавлено' },
+        menu: { title: '🍽 Меню', content: 'Меню пока не добавлено' },
+        events: { title: '📢 События', content: 'Событий пока нет' },
+        meetings: { title: '👨‍👩‍👧 Род. собрания', content: 'Информация о собраниях появится позже' }
+    };
+    
+    // Загрузка контента из localStorage
+    function loadContent() {
+        const saved = localStorage.getItem('school_content');
+        if (saved) {
+            try {
+                sections = { ...sections, ...JSON.parse(saved) };
+            } catch(e) {}
+        }
+    }
+    loadContent();
+    
+    // Показать контент раздела
+    function showSection(key) {
+        const section = sections[key];
+        alert(section.title + '\n\n' + section.content.replace(/<[^>]*>/g, ''));
+    }
+    
+    // Экраны
     const loginScreen = document.getElementById('loginScreen');
     const registerScreen = document.getElementById('registerScreen');
     const pendingScreen = document.getElementById('pendingScreen');
     const mainScreen = document.getElementById('mainScreen');
     const requestsModal = document.getElementById('requestsModal');
+    const contentModal = document.getElementById('contentModal');
     
-    // Кнопки
+    // Кнопки входа/регистрации
     document.getElementById('checkNicknameBtn').addEventListener('click', checkNickname);
     document.getElementById('submitRegisterBtn').addEventListener('click', registerUser);
     document.getElementById('backToLoginBtn').addEventListener('click', () => {
@@ -122,20 +172,48 @@
     });
     document.getElementById('logoutFromPendingBtn').addEventListener('click', logout);
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    
+    // Кнопки разделов (pending)
+    document.getElementById('pendingBtnSchedule').addEventListener('click', () => showSection('schedule'));
+    document.getElementById('pendingBtnMenu').addEventListener('click', () => showSection('menu'));
+    document.getElementById('pendingBtnEvents').addEventListener('click', () => showSection('events'));
+    document.getElementById('pendingBtnMeetings').addEventListener('click', () => showSection('meetings'));
+    
+    // Кнопки разделов (main)
+    document.getElementById('btnSchedule').addEventListener('click', () => showSection('schedule'));
+    document.getElementById('btnMenu').addEventListener('click', () => showSection('menu'));
+    document.getElementById('btnEvents').addEventListener('click', () => showSection('events'));
+    document.getElementById('btnMeetings').addEventListener('click', () => showSection('meetings'));
+    
+    // Чаты (пока заглушки)
+    document.getElementById('btnParentChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
+    document.getElementById('btnTeacherChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
+    
+    // Админские кнопки
     document.getElementById('btnShowRequests').addEventListener('click', showRequests);
     document.getElementById('closeRequestsModal').addEventListener('click', () => requestsModal.classList.add('hidden'));
-    
-    // Заглушки для кнопок разделов
-    document.getElementById('btnSchedule').addEventListener('click', () => alert('📅 Расписание скоро появится'));
-    document.getElementById('btnMenu').addEventListener('click', () => alert('🍽 Меню скоро появится'));
-    document.getElementById('btnParentChat').addEventListener('click', () => alert('💬 Чат откроется после одобрения'));
-    document.getElementById('btnTeacherChat').addEventListener('click', () => alert('💬 Чат откроется после одобрения'));
+    document.getElementById('btnEditContent').addEventListener('click', () => {
+        const select = document.getElementById('contentSectionSelect');
+        const textarea = document.getElementById('contentTextInput');
+        const key = select.value;
+        textarea.value = sections[key].content;
+        contentModal.classList.remove('hidden');
+    });
+    document.getElementById('closeContentModal').addEventListener('click', () => contentModal.classList.add('hidden'));
+    document.getElementById('saveContentBtn').addEventListener('click', () => {
+        const key = document.getElementById('contentSectionSelect').value;
+        const content = document.getElementById('contentTextInput').value;
+        sections[key].content = content;
+        localStorage.setItem('school_content', JSON.stringify(sections));
+        alert('✅ Сохранено');
+        contentModal.classList.add('hidden');
+    });
     
     async function checkNickname() {
         const nickname = document.getElementById('loginNickname').value.trim();
         if (!nickname) return alert('Введите никнейм');
         
-        const { data, error } = await sb.from('school_users').select('*').eq('nickname', nickname).single();
+        const { data } = await sb.from('school_users').select('*').eq('nickname', nickname).single();
         
         if (data) {
             currentUser = data;
@@ -144,12 +222,11 @@
             } else if (data.status === 'pending') {
                 showPendingScreen();
             } else if (data.status === 'banned') {
-                alert('⛔ Ваш аккаунт заблокирован');
+                alert('⛔ Аккаунт заблокирован');
             }
         } else {
-            // Новый пользователь
             document.getElementById('regFullName').value = '';
-            document.getElementById('regAge').value = '';
+            document.getElementById('regBirthDate').value = '';
             loginScreen.classList.add('hidden');
             registerScreen.classList.remove('hidden');
         }
@@ -158,16 +235,13 @@
     async function registerUser() {
         const nickname = document.getElementById('loginNickname').value.trim();
         const fullName = document.getElementById('regFullName').value.trim();
-        const age = document.getElementById('regAge').value;
+        const birthDate = document.getElementById('regBirthDate').value;
         
-        if (!fullName || !age) return alert('Заполните все поля');
+        if (!fullName || !birthDate) return alert('Заполните все поля');
         
         const { error } = await sb.from('school_users').insert({
-            nickname: nickname,
-            full_name: fullName,
-            age: parseInt(age),
-            status: 'pending',
-            role: 'parent'
+            nickname, full_name: fullName, birth_date: birthDate,
+            status: 'pending', role: 'parent'
         });
         
         if (error) {
@@ -194,11 +268,18 @@
         document.getElementById('displayNickname').innerText = currentUser.nickname;
         
         if (currentUser.nickname === ADMIN_NICK) {
-            document.getElementById('adminBadge').classList.remove('hidden');
             document.getElementById('adminPanel').classList.remove('hidden');
         }
         if (currentUser.role === 'teacher') {
             document.getElementById('teacherBadge').classList.remove('hidden');
+        }
+        
+        // Персональное приветствие для Максима
+        if (currentUser.id === 1 && currentUser.nickname === ADMIN_NICK) {
+            const fullName = currentUser.full_name || '';
+            if (fullName.includes('Хилобокий') || fullName.includes('Максим')) {
+                setTimeout(() => alert('👑 Здравствуйте, администратор Максим'), 100);
+            }
         }
     }
     
@@ -213,19 +294,18 @@
     
     async function showRequests() {
         if (currentUser.nickname !== ADMIN_NICK) return;
-        
         const { data } = await sb.from('school_users').select('*').eq('status', 'pending');
         const list = document.getElementById('requestsList');
-        
         if (!data || data.length === 0) {
             list.innerHTML = '<p>Нет новых заявок</p>';
         } else {
             list.innerHTML = data.map(u => `
                 <div class="request-item">
                     <b>${u.nickname}</b><br>
-                    ${u.full_name}, ${u.age} лет<br>
-                    <button onclick="approveUser(${u.id})" class="btn" style="margin-top:8px;">✅ Одобрить</button>
-                    <button onclick="banUser(${u.id})" class="btn-outline" style="margin-top:8px;">⛔ Забанить</button>
+                    ${u.full_name}<br>
+                    Дата рождения: ${u.birth_date}<br>
+                    <button class="btn" onclick="window.approveUser(${u.id})">✅ Одобрить</button>
+                    <button class="btn-outline" onclick="window.banUser(${u.id})">⛔ Забанить</button>
                 </div>
             `).join('');
         }
@@ -234,13 +314,11 @@
     
     window.approveUser = async (id) => {
         await sb.from('school_users').update({ status: 'approved' }).eq('id', id);
-        alert('Одобрено');
         showRequests();
     };
     
     window.banUser = async (id) => {
         await sb.from('school_users').update({ status: 'banned' }).eq('id', id);
-        alert('Забанено');
         showRequests();
     };
 </script>
