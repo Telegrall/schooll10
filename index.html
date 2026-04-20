@@ -8,22 +8,61 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background:#0e1621; color:#eef4ff; min-height:100vh; padding:16px; }
-        .container { max-width:600px; margin:0 auto; }
-        h1 { font-size:1.8rem; background:linear-gradient(135deg, #C0E0FF, #7CB9FF); -webkit-background-clip:text; color:transparent; text-align:center; margin-bottom:8px; }
-        .card { background:#1f2c38; border-radius:20px; padding:20px; margin-bottom:16px; border:1px solid #2b3b4c; }
-        .btn { background:#2b9aff; border:none; border-radius:16px; padding:14px; color:white; font-weight:600; cursor:pointer; width:100%; margin-top:12px; }
+        body {
+            background: radial-gradient(ellipse at 30% 40%, #0a0f2a, #03050b);
+            color: #eef4ff;
+            min-height: 100vh;
+            padding: 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        .stars { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+        .star { position:absolute; background:#fff; border-radius:50%; width:2px; height:2px; opacity:0; animation:twinkle 3s infinite alternate; }
+        @keyframes twinkle { 0%{opacity:0;transform:scale(0.8);} 100%{opacity:1;transform:scale(1.2);} }
+        
+        .waves { position:fixed; bottom:0; left:0; width:100%; height:60px; pointer-events:none; z-index:5; }
+        .wave { position:absolute; bottom:0; left:0; width:200%; height:100%; background:repeating-linear-gradient(transparent 0%,transparent 40%,rgba(43,154,255,0.15) 50%,transparent 60%,transparent 100%); animation:waveMove 8s linear infinite; }
+        .wave:nth-child(2) { opacity:0.5; animation:waveMove 12s linear infinite reverse; }
+        .wave:nth-child(3) { opacity:0.3; animation:waveMove 6s linear infinite; }
+        @keyframes waveMove { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+        
+        .whale { position:fixed; width:80px; height:80px; pointer-events:none; z-index:10; filter:drop-shadow(0 0 12px rgba(43,154,255,0.5)); }
+        .whale svg { width:100%; height:100%; }
+        
+        .container { max-width:600px; margin:0 auto; position:relative; z-index:20; padding-bottom:80px; }
+        h1 { font-size:2rem; font-weight:700; background:linear-gradient(135deg,#C0E0FF,#7CB9FF); -webkit-background-clip:text; background-clip:text; color:transparent; text-align:center; margin-bottom:8px; text-shadow:0 0 20px rgba(43,154,255,0.3); }
+        .subtitle { text-align:center; color:#8e9eae; margin-bottom:24px; }
+        .card { background:rgba(15,25,55,0.55); backdrop-filter:blur(12px); border-radius:28px; padding:20px; margin-bottom:16px; border:1px solid rgba(43,154,255,0.25); box-shadow:0 8px 20px rgba(0,0,0,0.3); }
+        .btn { background:linear-gradient(95deg,#2b6ef0,#1a4fcf); border:none; border-radius:40px; padding:14px; color:white; font-weight:600; cursor:pointer; width:100%; margin-top:12px; border:1px solid rgba(255,255,255,0.1); transition:transform 0.2s,box-shadow 0.2s; }
+        .btn:active { transform:scale(0.98); box-shadow:0 0 16px rgba(43,154,255,0.4); }
         .btn-outline { background:transparent; border:1px solid #2b9aff; color:#2b9aff; }
-        .input-field { width:100%; background:#0e1621; border:1px solid #2b3b4c; border-radius:16px; padding:14px; color:white; margin-bottom:12px; }
+        .input-field { width:100%; background:rgba(15,25,55,0.8); border:1px solid #2c4875; border-radius:40px; padding:14px; color:white; margin-bottom:12px; outline:none; }
+        .input-field:focus { border-color:#5b9eff; box-shadow:0 0 12px rgba(91,158,255,0.4); }
         .hidden { display:none !important; }
         .badge { background:#2b9aff; padding:4px 10px; border-radius:20px; font-size:0.8rem; margin-left:8px; }
-        .request-item { background:#17212b; border-radius:16px; padding:16px; margin-bottom:12px; }
+        .request-item { background:rgba(23,33,43,0.8); border-radius:16px; padding:16px; margin-bottom:12px; backdrop-filter:blur(8px); }
         .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; padding:16px; z-index:1000; }
-        .modal-content { background:#17212b; border-radius:28px; padding:24px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; }
+        .modal-content { background:#17212b; border-radius:28px; padding:24px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; border:1px solid #2b3b4c; }
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .site-link { text-align:center; margin-top:20px; }
+        .site-link a { color:#2b9aff; text-decoration:none; font-size:1rem; display:inline-flex; align-items:center; gap:8px; padding:12px 24px; background:rgba(15,25,55,0.55); backdrop-filter:blur(8px); border-radius:40px; border:1px solid rgba(43,154,255,0.25); }
     </style>
 </head>
 <body>
+<div class="stars" id="starsContainer"></div>
+<div class="waves">
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+</div>
+<div class="whale" id="whale">
+    <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 65 L10 75 L20 85 L45 80 L75 92 L110 95 L145 88 L170 78 L185 68 L190 58 L175 52 L155 55 L130 58 L110 60 L85 58 L60 55 L40 58 L30 65Z" fill="#3B82F6" stroke="#BFDBFE" stroke-width="1.5"/>
+        <circle cx="162" cy="64" r="4" fill="white"/>
+        <circle cx="163" cy="63" r="1.8" fill="#0A1128"/>
+    </svg>
+</div>
+
 <div class="container" id="app">
     <!-- ЭКРАН ВХОДА -->
     <div id="loginScreen">
@@ -45,7 +84,7 @@
         </div>
     </div>
 
-    <!-- ЭКРАН ОЖИДАНИЯ (МИНИМАЛЬНЫЙ ДОСТУП) -->
+    <!-- ЭКРАН ОЖИДАНИЯ -->
     <div id="pendingScreen" class="hidden">
         <h1>⏳ На проверке</h1>
         <div class="card">
@@ -61,7 +100,7 @@
         <button class="btn-outline" id="logoutFromPendingBtn">🚪 Выйти</button>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН (ОДОБРЕННЫЕ) -->
+    <!-- ГЛАВНЫЙ ЭКРАН -->
     <div id="mainScreen" class="hidden">
         <h1>🏫 Школьный помощник</h1>
         <div class="subtitle">
@@ -82,11 +121,12 @@
             <button class="btn-outline" id="btnTeacherChat">👩‍🏫 Чат учителей</button>
         </div>
 
-        <!-- АДМИН-ПАНЕЛЬ (только @Maksikrue, скрыта в коде) -->
+        <!-- АДМИН-ПАНЕЛЬ -->
         <div id="adminPanel" class="card hidden">
             <h3>⚙️ Управление</h3>
             <button class="btn" id="btnShowRequests">📬 Заявки</button>
             <button class="btn-outline" id="btnEditContent">📝 Редактировать разделы</button>
+            <button class="btn-outline" id="btnManageChats">💬 Все чаты</button>
         </div>
 
         <button class="btn-outline" id="logoutBtn">🚪 Выйти</button>
@@ -95,30 +135,47 @@
     <!-- МОДАЛКА: ЗАЯВКИ -->
     <div id="requestsModal" class="modal hidden">
         <div class="modal-content">
-            <h3>📬 Заявки на вступление</h3>
+            <h3>📬 Заявки</h3>
             <div id="requestsList"></div>
             <button class="btn-outline" id="closeRequestsModal">Закрыть</button>
         </div>
     </div>
 
-    <!-- МОДАЛКА: РЕДАКТОР КОНТЕНТА -->
+    <!-- МОДАЛКА: РЕДАКТОР -->
     <div id="contentModal" class="modal hidden">
         <div class="modal-content">
-            <h3>📝 Редактировать раздел</h3>
+            <h3>📝 Редактировать</h3>
             <select id="contentSectionSelect" class="input-field">
                 <option value="schedule">Расписание</option>
                 <option value="menu">Меню</option>
                 <option value="events">События</option>
                 <option value="meetings">Род. собрания</option>
             </select>
-            <textarea id="contentTextInput" class="input-field" rows="6" placeholder="Введите текст или HTML..."></textarea>
+            <textarea id="contentTextInput" class="input-field" rows="6"></textarea>
             <button class="btn" id="saveContentBtn">Сохранить</button>
             <button class="btn-outline" id="closeContentModal">Закрыть</button>
         </div>
     </div>
+
+    <!-- МОДАЛКА: ЧАТЫ -->
+    <div id="chatsModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>💬 Управление чатами</h3>
+            <input type="text" id="newChatName" class="input-field" placeholder="Название">
+            <input type="text" id="newChatCode" class="input-field" placeholder="Код доступа">
+            <button class="btn" id="createChatBtn">➕ Создать</button>
+            <div id="chatsList" style="margin-top:16px;"></div>
+            <button class="btn-outline" id="closeChatsModal">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="site-link">
+        <a href="https://telegrall.github.io/GDAMICH/" target="_blank">🐋 Сайт компании GDAMICH</a>
+    </div>
 </div>
 
 <script>
+    // Supabase
     const SUPABASE_URL = "https://iiuahjmpszfcgtwapidt.supabase.co";
     const SUPABASE_KEY = "sb_publishable_iFYpqkv4D0qEOj4Dn1X9Nw_OH9d5Bji";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -130,29 +187,22 @@
     tg.ready();
     tg.expand();
     
-    // Контент разделов (из localStorage)
+    // Контент разделов
     let sections = {
         schedule: { title: '📅 Расписание', content: 'Расписание пока не добавлено' },
         menu: { title: '🍽 Меню', content: 'Меню пока не добавлено' },
         events: { title: '📢 События', content: 'Событий пока нет' },
-        meetings: { title: '👨‍👩‍👧 Род. собрания', content: 'Информация о собраниях появится позже' }
+        meetings: { title: '👨‍👩‍👧 Род. собрания', content: 'Информация появится позже' }
     };
     
-    // Загрузка контента из localStorage
     function loadContent() {
         const saved = localStorage.getItem('school_content');
-        if (saved) {
-            try {
-                sections = { ...sections, ...JSON.parse(saved) };
-            } catch(e) {}
-        }
+        if (saved) { try { sections = { ...sections, ...JSON.parse(saved) }; } catch(e) {} }
     }
     loadContent();
     
-    // Показать контент раздела
     function showSection(key) {
-        const section = sections[key];
-        alert(section.title + '\n\n' + section.content.replace(/<[^>]*>/g, ''));
+        alert(sections[key].title + '\n\n' + sections[key].content.replace(/<[^>]*>/g, ''));
     }
     
     // Экраны
@@ -162,8 +212,9 @@
     const mainScreen = document.getElementById('mainScreen');
     const requestsModal = document.getElementById('requestsModal');
     const contentModal = document.getElementById('contentModal');
+    const chatsModal = document.getElementById('chatsModal');
     
-    // Кнопки входа/регистрации
+    // Кнопки входа
     document.getElementById('checkNicknameBtn').addEventListener('click', checkNickname);
     document.getElementById('submitRegisterBtn').addEventListener('click', registerUser);
     document.getElementById('backToLoginBtn').addEventListener('click', () => {
@@ -173,62 +224,93 @@
     document.getElementById('logoutFromPendingBtn').addEventListener('click', logout);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     
-    // Кнопки разделов (pending)
+    // Кнопки разделов
     document.getElementById('pendingBtnSchedule').addEventListener('click', () => showSection('schedule'));
     document.getElementById('pendingBtnMenu').addEventListener('click', () => showSection('menu'));
     document.getElementById('pendingBtnEvents').addEventListener('click', () => showSection('events'));
     document.getElementById('pendingBtnMeetings').addEventListener('click', () => showSection('meetings'));
-    
-    // Кнопки разделов (main)
     document.getElementById('btnSchedule').addEventListener('click', () => showSection('schedule'));
     document.getElementById('btnMenu').addEventListener('click', () => showSection('menu'));
     document.getElementById('btnEvents').addEventListener('click', () => showSection('events'));
     document.getElementById('btnMeetings').addEventListener('click', () => showSection('meetings'));
     
-    // Чаты (пока заглушки)
     document.getElementById('btnParentChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
     document.getElementById('btnTeacherChat').addEventListener('click', () => alert('Чат откроется после одобрения'));
     
-    // Админские кнопки
+    // Админка
     document.getElementById('btnShowRequests').addEventListener('click', showRequests);
     document.getElementById('closeRequestsModal').addEventListener('click', () => requestsModal.classList.add('hidden'));
     document.getElementById('btnEditContent').addEventListener('click', () => {
-        const select = document.getElementById('contentSectionSelect');
-        const textarea = document.getElementById('contentTextInput');
-        const key = select.value;
-        textarea.value = sections[key].content;
+        const key = document.getElementById('contentSectionSelect').value;
+        document.getElementById('contentTextInput').value = sections[key].content;
         contentModal.classList.remove('hidden');
     });
     document.getElementById('closeContentModal').addEventListener('click', () => contentModal.classList.add('hidden'));
     document.getElementById('saveContentBtn').addEventListener('click', () => {
         const key = document.getElementById('contentSectionSelect').value;
-        const content = document.getElementById('contentTextInput').value;
-        sections[key].content = content;
+        sections[key].content = document.getElementById('contentTextInput').value;
         localStorage.setItem('school_content', JSON.stringify(sections));
         alert('✅ Сохранено');
         contentModal.classList.add('hidden');
     });
     
+    // Управление чатами
+    let schoolChats = [];
+    function loadChats() {
+        const saved = localStorage.getItem('school_chats');
+        if (saved) { try { schoolChats = JSON.parse(saved); } catch(e) { schoolChats = []; } }
+        else {
+            schoolChats = [
+                { id: 1, name: 'Общий', code: null, type: 'general' },
+                { id: 2, name: 'Учительская', code: 'teacher2024', type: 'teacher' }
+            ];
+            saveChats();
+        }
+    }
+    function saveChats() { localStorage.setItem('school_chats', JSON.stringify(schoolChats)); }
+    function renderChatsList() {
+        const list = document.getElementById('chatsList');
+        const classChats = schoolChats.filter(c => c.type === 'class');
+        if (!classChats.length) { list.innerHTML = '<p style="color:#8e9eae;">Нет чатов</p>'; return; }
+        list.innerHTML = classChats.map(c => `
+            <div class="request-item" style="display:flex; justify-content:space-between;">
+                <div><b>${c.name}</b><br><span style="font-size:0.8rem;">Код: ${c.code}</span></div>
+                <button onclick="window.deleteChat(${c.id})" style="background:#ff3b30; border:none; color:white; padding:8px 16px; border-radius:20px;">🗑️</button>
+            </div>
+        `).join('');
+    }
+    window.deleteChat = function(id) { schoolChats = schoolChats.filter(c => c.id !== id); saveChats(); renderChatsList(); };
+    document.getElementById('btnManageChats').addEventListener('click', () => {
+        if (currentUser?.nickname !== ADMIN_NICK) return;
+        renderChatsList();
+        chatsModal.classList.remove('hidden');
+    });
+    document.getElementById('closeChatsModal').addEventListener('click', () => chatsModal.classList.add('hidden'));
+    document.getElementById('createChatBtn').addEventListener('click', () => {
+        const name = document.getElementById('newChatName').value.trim();
+        const code = document.getElementById('newChatCode').value.trim();
+        if (!name || !code) return alert('Введите данные');
+        const newId = Math.max(...schoolChats.map(c => c.id), 0) + 1;
+        schoolChats.push({ id: newId, name, code, type: 'class' });
+        saveChats();
+        document.getElementById('newChatName').value = '';
+        document.getElementById('newChatCode').value = '';
+        renderChatsList();
+    });
+    loadChats();
+    
     async function checkNickname() {
         const nickname = document.getElementById('loginNickname').value.trim();
-        if (!nickname) return alert('Введите никнейм');
-        
+        if (!nickname) return alert('Введите ник');
         const { data } = await sb.from('school_users').select('*').eq('nickname', nickname).single();
-        
         if (data) {
             currentUser = data;
-            if (data.status === 'approved') {
-                showMainScreen();
-            } else if (data.status === 'pending') {
-                showPendingScreen();
-            } else if (data.status === 'banned') {
-                alert('⛔ Аккаунт заблокирован');
-            }
+            if (data.status === 'approved') showMainScreen();
+            else if (data.status === 'pending') showPendingScreen();
+            else if (data.status === 'banned') alert('⛔ Аккаунт заблокирован');
         } else {
-            document.getElementById('regFullName').value = '';
-            document.getElementById('regBirthDate').value = '';
-            loginScreen.classList.add('hidden');
             registerScreen.classList.remove('hidden');
+            loginScreen.classList.add('hidden');
         }
     }
     
@@ -236,20 +318,10 @@
         const nickname = document.getElementById('loginNickname').value.trim();
         const fullName = document.getElementById('regFullName').value.trim();
         const birthDate = document.getElementById('regBirthDate').value;
-        
         if (!fullName || !birthDate) return alert('Заполните все поля');
-        
-        const { error } = await sb.from('school_users').insert({
-            nickname, full_name: fullName, birth_date: birthDate,
-            status: 'pending', role: 'parent'
-        });
-        
-        if (error) {
-            alert('Ошибка: ' + error.message);
-        } else {
-            registerScreen.classList.add('hidden');
-            showPendingScreen();
-        }
+        await sb.from('school_users').insert({ nickname, full_name: fullName, birth_date: birthDate, status: 'pending', role: 'parent' });
+        registerScreen.classList.add('hidden');
+        showPendingScreen();
     }
     
     function showPendingScreen() {
@@ -264,28 +336,16 @@
         registerScreen.classList.add('hidden');
         pendingScreen.classList.add('hidden');
         mainScreen.classList.remove('hidden');
-        
         document.getElementById('displayNickname').innerText = currentUser.nickname;
-        
-        if (currentUser.nickname === ADMIN_NICK) {
-            document.getElementById('adminPanel').classList.remove('hidden');
-        }
-        if (currentUser.role === 'teacher') {
-            document.getElementById('teacherBadge').classList.remove('hidden');
-        }
-        
-        // Персональное приветствие для Максима
+        if (currentUser.nickname === ADMIN_NICK) document.getElementById('adminPanel').classList.remove('hidden');
+        if (currentUser.role === 'teacher') document.getElementById('teacherBadge').classList.remove('hidden');
         if (currentUser.id === 1 && currentUser.nickname === ADMIN_NICK) {
-            const fullName = currentUser.full_name || '';
-            if (fullName.includes('Хилобокий') || fullName.includes('Максим')) {
-                setTimeout(() => alert('👑 Здравствуйте, администратор Максим'), 100);
-            }
+            setTimeout(() => alert('👑 Здравствуйте, администратор Максим'), 100);
         }
     }
     
     function logout() {
         currentUser = null;
-        document.getElementById('loginNickname').value = '';
         loginScreen.classList.remove('hidden');
         registerScreen.classList.add('hidden');
         pendingScreen.classList.add('hidden');
@@ -293,34 +353,46 @@
     }
     
     async function showRequests() {
-        if (currentUser.nickname !== ADMIN_NICK) return;
+        if (currentUser?.nickname !== ADMIN_NICK) return;
         const { data } = await sb.from('school_users').select('*').eq('status', 'pending');
         const list = document.getElementById('requestsList');
-        if (!data || data.length === 0) {
-            list.innerHTML = '<p>Нет новых заявок</p>';
-        } else {
-            list.innerHTML = data.map(u => `
-                <div class="request-item">
-                    <b>${u.nickname}</b><br>
-                    ${u.full_name}<br>
-                    Дата рождения: ${u.birth_date}<br>
-                    <button class="btn" onclick="window.approveUser(${u.id})">✅ Одобрить</button>
-                    <button class="btn-outline" onclick="window.banUser(${u.id})">⛔ Забанить</button>
-                </div>
-            `).join('');
-        }
+        list.innerHTML = data?.length ? data.map(u => `
+            <div class="request-item"><b>${u.nickname}</b><br>${u.full_name}<br>${u.birth_date}<br>
+                <button class="btn" onclick="window.approve(${u.id})">✅</button>
+                <button class="btn-outline" onclick="window.ban(${u.id})">⛔</button>
+            </div>`).join('') : '<p>Нет заявок</p>';
         requestsModal.classList.remove('hidden');
     }
+    window.approve = async (id) => { await sb.from('school_users').update({ status: 'approved' }).eq('id', id); showRequests(); };
+    window.ban = async (id) => { await sb.from('school_users').update({ status: 'banned' }).eq('id', id); showRequests(); };
     
-    window.approveUser = async (id) => {
-        await sb.from('school_users').update({ status: 'approved' }).eq('id', id);
-        showRequests();
-    };
-    
-    window.banUser = async (id) => {
-        await sb.from('school_users').update({ status: 'banned' }).eq('id', id);
-        showRequests();
-    };
+    // Звёзды и кит
+    (function() {
+        const stars = document.getElementById('starsContainer');
+        for (let i=0; i<200; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = Math.random()*100+'%';
+            s.style.top = Math.random()*100+'%';
+            s.style.animationDelay = Math.random()*5+'s';
+            stars.appendChild(s);
+        }
+        
+        const whale = document.getElementById('whale');
+        let x = window.innerWidth/2, y = window.innerHeight/2;
+        let vx = 1.5, vy = 1.2;
+        let dir = 1;
+        
+        function animateWhale() {
+            const w = window.innerWidth, h = window.innerHeight;
+            x += vx; y += vy;
+            if (x < -40 || x > w-40) { vx *= -1; dir *= -1; }
+            if (y < -40 || y > h-40) vy *= -1;
+            whale.style.transform = `translate(${x}px, ${y}px) scaleX(${dir})`;
+            requestAnimationFrame(animateWhale);
+        }
+        animateWhale();
+    })();
 </script>
 </body>
 </html>
